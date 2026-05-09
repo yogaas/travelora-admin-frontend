@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary-blue: #2563EB;
+  --color-dark-navy: #081B3A;
+  --color-base-bg: #F5F7FB;
+  --color-card-bg: #FFFFFF;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+
+  --shadow-premium: 0 10px 30px rgba(0,0,0,0.06);
+
+  --radius-premium: 20px;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom Scrollbar for a premium feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent; 
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3); 
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5); 
+}
+
+/* Hide scrollbar for sidebar but keep functionality */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
