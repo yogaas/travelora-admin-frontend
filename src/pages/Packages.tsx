@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Map, Edit2, Trash2, Eye } from "lucide-react";
+import { Map, Edit2, Trash2, Eye, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { Layout } from "../components/Layout";
 import { packageService, PackagesQueryParams, Package } from "../services/package.service";
 import { PackageFormModal } from "../components/packages/PackageFormModal";
+import { PackageReviewsModal } from "../components/packages/PackageReviewsModal";
 import { CommonTable } from "../components/ui/CommonTable";
 import { TableSortHeader } from "../components/ui/TableSortHeader";
 import { DeleteModal } from "../components/ui/DeleteModal";
-import { PreviewModal } from "../components/ui/PreviewModal";
 import { useTableState } from "../hooks/useTableState";
 import { PageHeader } from "../components/ui/PageHeader";
 import { TableToolbar } from "../components/ui/TableToolbar";
@@ -30,6 +30,7 @@ export function Packages() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isReviewsOpen, setIsReviewsOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
 
   const { data, isLoading, isError } = useQuery({
@@ -42,12 +43,6 @@ export function Packages() {
       ...(debouncedSearch ? { q: debouncedSearch } : {})
     }),
     placeholderData: (previousData) => previousData,
-  });
-
-  const { data: previewData, isLoading: isPreviewLoading } = useQuery({
-    queryKey: ["package", selectedPackage?.id],
-    queryFn: () => packageService.getPackage(selectedPackage!.id),
-    enabled: !!selectedPackage?.id && isPreviewOpen,
   });
 
   const actions = {
@@ -66,6 +61,10 @@ export function Packages() {
     preview: (item: Package) => {
         setSelectedPackage(item);
         setIsPreviewOpen(true);
+    },
+    reviews: (item: Package) => {
+        setSelectedPackage(item);
+        setIsReviewsOpen(true);
     }
   };
 
@@ -136,6 +135,12 @@ export function Packages() {
                             <Eye className="w-4 h-4" />
                         </button>
                         <button 
+                            onClick={() => actions.reviews(item)}
+                            className="text-gray-400 hover:text-purple-500 transition-colors p-2 rounded-lg hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500/30 inline-flex"
+                        >
+                            <MessageSquare className="w-4 h-4" />
+                        </button>
+                        <button 
                             onClick={() => actions.edit(item)}
                             className="text-gray-400 hover:text-primary-blue transition-colors p-2 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-primary-blue/30 inline-flex"
                         >
@@ -169,12 +174,18 @@ export function Packages() {
         queryKeyToInvalidate="packages"
       />
 
-      <PreviewModal
+      <PackageFormModal
         isOpen={isPreviewOpen}
         onClose={() => setIsPreviewOpen(false)}
-        title="Package"
-        data={previewData}
-        isLoading={isPreviewLoading}
+        packageToEdit={selectedPackage}
+        isViewMode={true}
+      />
+
+      <PackageReviewsModal
+        isOpen={isReviewsOpen}
+        onClose={() => setIsReviewsOpen(false)}
+        packageId={selectedPackage?.id}
+        packageName={selectedPackage?.name}
       />
     </Layout>
   );

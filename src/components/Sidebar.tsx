@@ -1,37 +1,49 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
-  CalendarCheck,
   Map,
   MapPin,
   Users,
   Shield,
   FileText,
   FolderHeart,
-  Star,
-  Tag,
   CreditCard,
   PieChart,
-  Settings,
   Plane,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: CalendarCheck, label: "Bookings", path: "/bookings" },
-  { icon: Map, label: "Tours & Packages", path: "/packages" },
-  { icon: MapPin, label: "Destinations", path: "/destinations" },
-  { icon: Users, label: "Users", path: "/users" },
-  { icon: Shield, label: "Roles", path: "/roles" },
-  { icon: FileText, label: "Blog Posts", path: "/blog" },
-  { icon: FolderHeart, label: "Blog Categories", path: "/blog-categories" },
-  { icon: CreditCard, label: "Orders", path: "/orders" },
-  { icon: Star, label: "Reviews", path: "/reviews" },
-  { icon: Tag, label: "Coupons", path: "/coupons" },
-  { icon: CreditCard, label: "Payments", path: "/payments" },
-  { icon: PieChart, label: "Reports", path: "/reports" },
-  { icon: Settings, label: "Settings", path: "/settings" },
+const menuGroups = [
+  {
+    title: "Main",
+    items: [
+      { icon: LayoutDashboard, label: "Dashboard", path: "/" },
+    ]
+  },
+  {
+    title: "Transaksi",
+    items: [
+      { icon: CreditCard, label: "Orders", path: "/orders" },
+      { icon: CreditCard, label: "Payments", path: "/payments" },
+      { icon: FileText, label: "Blog Posts", path: "/blog" },
+    ]
+  },
+  {
+    title: "Master Data",
+    items: [
+      { icon: Map, label: "Tour & Packages", path: "/packages" },
+      { icon: MapPin, label: "Destinations", path: "/destinations" },
+      { icon: FolderHeart, label: "Blog Categories", path: "/blog-categories" },
+      { icon: Shield, label: "Roles", path: "/roles" },
+      { icon: Users, label: "Users", path: "/users" },
+    ]
+  },
+  {
+    title: "Report",
+    items: [
+      { icon: PieChart, label: "Report", path: "/reports" },
+    ]
+  }
 ];
 
 export function Sidebar() {
@@ -53,30 +65,39 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto mt-6 px-4 pb-4 space-y-1.5 custom-scrollbar">
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
-          return (
-            <Link
-              key={item.label}
-              to={item.path}
-              className={cn(
-                "flex items-center px-4 py-3 rounded-2xl transition-all duration-300 group",
-                isActive
-                  ? "bg-gradient-to-r from-primary-blue to-blue-400 text-white shadow-lg shadow-primary-blue/30 shadow-premium"
-                  : "text-gray-400 hover:text-white hover:bg-white/5"
-              )}
-            >
-              <item.icon
-                className={cn(
-                  "h-5 w-5 mr-3 transition-colors",
-                  isActive ? "text-white" : "group-hover:text-blue-300"
-                )}
-              />
-              <span className="font-medium text-sm">{item.label}</span>
-            </Link>
-          );
-        })}
+      <nav className="flex-1 overflow-y-auto mt-4 px-4 pb-4 space-y-6 custom-scrollbar">
+        {menuGroups.map((group, index) => (
+          <div key={index} className="space-y-1.5">
+            {group.title !== "Main" && (
+                <h3 className="px-4 text-xs font-semibold text-blue-300/60 uppercase tracking-wider mb-2">
+                  {group.title}
+                </h3>
+            )}
+            {group.items.map((item) => {
+              const isActive = location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path));
+              return (
+                <Link
+                  key={item.label}
+                  to={item.path}
+                  className={cn(
+                    "flex items-center px-4 py-3 rounded-2xl transition-all duration-300 group",
+                    isActive
+                      ? "bg-gradient-to-r from-primary-blue to-blue-400 text-white shadow-lg shadow-primary-blue/30 shadow-premium"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
+                  )}
+                >
+                  <item.icon
+                    className={cn(
+                      "h-5 w-5 mr-3 transition-colors",
+                      isActive ? "text-white" : "group-hover:text-blue-300"
+                    )}
+                  />
+                  <span className="font-medium text-sm">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       {/* Promotional Card */}
