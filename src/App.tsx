@@ -15,6 +15,8 @@ import { Blogs } from "./pages/Blogs";
 import { BlogCategories } from "./pages/BlogCategories";
 import { Roles } from "./pages/Roles";
 import { Orders } from "./pages/Orders";
+import { Payments } from "./pages/Payments";
+import { PaymentMethods } from "./pages/PaymentMethods";
 import { Profile } from "./pages/Profile";
 import { useAuthStore } from "./store/authStore";
 
@@ -105,6 +107,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Orders />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/payments" 
+            element={
+              <ProtectedRoute>
+                <Payments />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/payment-methods" 
+            element={
+              <ProtectedRoute>
+                <PaymentMethods />
               </ProtectedRoute>
             } 
           />

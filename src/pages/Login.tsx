@@ -6,7 +6,7 @@ import { authService, LoginCredentials } from "../services/auth.service";
 import { useAuthStore } from "../store/authStore";
 
 export function Login() {
-  const [email, setEmail] = useState("admin@travelora.com");
+  const [email, setEmail] = useState("roel40@example.net");
   const [password, setPassword] = useState("password");
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);

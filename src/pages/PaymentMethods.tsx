@@ -5,16 +5,15 @@ import { format } from "date-fns";
 import toast from "react-hot-toast";
 
 import { Layout } from "../components/Layout";
-import { orderService, OrdersQueryParams, Order } from "../services/order.service";
-import { orderDetailService } from "../services/orderDetail.service";
-import { OrderFormModal } from "../components/orders/OrderFormModal";
+import { paymentMethodService, PaymentMethodsQueryParams, PaymentMethod } from "../services/paymentMethod.service";
+import { PaymentMethodFormModal } from "../components/payments/PaymentMethodFormModal";
 import { useTableState } from "../hooks/useTableState";
 import { PageHeader } from "../components/ui/PageHeader";
 import { TableToolbar } from "../components/ui/TableToolbar";
 import { CommonTable } from "../components/ui/CommonTable";
 import { TableSortHeader } from "../components/ui/TableSortHeader";
 
-export function Orders() {
+export function PaymentMethods() {
   const queryClient = useQueryClient();
   const {
     page,
@@ -27,14 +26,14 @@ export function Orders() {
     setPerPage,
     setSearchQuery,
     handleSort
-  } = useTableState<OrdersQueryParams["sort_by"]>("created_at", "desc");
+  } = useTableState<PaymentMethodsQueryParams["sort_by"]>("created_at", "desc");
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["orders", { page, per_page: perPage, sort_by: sortBy, order, q: debouncedSearch }],
-    queryFn: () => orderService.getOrders({
+    queryKey: ["payment-methods", { page, per_page: perPage, sort_by: sortBy, order, q: debouncedSearch }],
+    queryFn: () => paymentMethodService.getPaymentMethods({
       page,
       per_page: perPage,
       sort_by: sortBy,
@@ -45,66 +44,39 @@ export function Orders() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      try {
-        const detailsRes = await orderDetailService.getOrderDetailsByOrderId(id);
-        if (detailsRes.success && detailsRes.data) {
-           for (const detail of detailsRes.data) {
-              await orderDetailService.deleteOrderDetail(detail.id);
-           }
-        }
-      } catch (e) {
-        // ignore if not found
-      }
-      return orderService.deleteOrder(id);
-    },
+    mutationFn: (id: string) => paymentMethodService.deletePaymentMethod(id),
     onSuccess: (res) => {
-      toast.success(res.message || "Order deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      toast.success(res.message || "Payment method deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to delete order");
+      toast.error(error.response?.data?.message || "Failed to delete payment method");
     }
   });
 
   const actions = {
     create: () => {
-      setSelectedOrder(null);
+      setSelectedMethod(null);
       setIsFormOpen(true);
     },
-    edit: (order: Order) => {
-      setSelectedOrder(order);
+    edit: (method: PaymentMethod) => {
+      setSelectedMethod(method);
       setIsFormOpen(true);
     },
-    delete: (ord: Order) => {
-      if (window.confirm(`Are you sure you want to delete this order?`)) {
-        deleteMutation.mutate(ord.id);
+    delete: (method: PaymentMethod) => {
+      if (window.confirm(`Are you sure you want to delete "${method.name}"?`)) {
+        deleteMutation.mutate(method.id);
       }
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch(status.toLowerCase()) {
-      case 'paid':
-      case 'completed':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'pending':
-        return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'cancelled':
-      case 'refunded':
-        return 'bg-rose-100 text-rose-800 border-rose-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   return (
     <Layout>
       <PageHeader
-        title="Orders"
-        description="Manage customer orders and payments."
+        title="Payment Methods"
+        description="Manage payment options available for users."
         icon={CreditCard}
-        actionButtonLabel="Add Order"
+        actionButtonLabel="Add Method"
         onAction={actions.create}
       />
 
@@ -114,7 +86,7 @@ export function Orders() {
           onSearchChange={setSearchQuery}
           perPage={perPage}
           onPerPageChange={setPerPage}
-          searchPlaceholder="Search by status..."
+          searchPlaceholder="Search method name..."
         />
 
         <CommonTable
@@ -132,45 +104,35 @@ export function Orders() {
         >
           <thead>
             <tr className="bg-gray-50/50">
+              <TableSortHeader label="Method Name" column="name" currentSort={sortBy!} currentOrder={order!} onSort={handleSort} />
               <TableSortHeader label="Created At" column="created_at" currentSort={sortBy!} currentOrder={order!} onSort={handleSort} />
-              <th className="py-4 px-6 text-xs font-semibold text-text-secondary uppercase tracking-wider">User ID</th>
-              <TableSortHeader label="Total Amount" column="total_amount" currentSort={sortBy!} currentOrder={order!} onSort={handleSort} />
-              <TableSortHeader label="Status" column="status" currentSort={sortBy!} currentOrder={order!} onSort={handleSort} />
               <th className="py-4 px-6 text-xs font-semibold text-text-secondary uppercase tracking-wider text-right">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50 text-sm">
-            {data?.data?.data?.map((ord) => (
-              <tr key={ord.id} className="hover:bg-gray-50/50 transition-colors group">
+            {data?.data?.data?.map((method) => (
+              <tr key={method.id} className="hover:bg-gray-50/50 transition-colors group">
+                <td className="py-4 px-6 font-medium text-text-secondary">
+                  {method.name}
+                </td>
                 <td className="py-4 px-6 text-text-secondary">
-                  {ord.created_at ? format(new Date(ord.created_at), "MMM dd, yyyy HH:mm") : "-"}
-                </td>
-                <td className="py-4 px-6 font-medium text-text-secondary font-mono text-xs">
-                  {ord.user_id}
-                </td>
-                <td className="py-4 px-6 font-semibold text-text-primary">
-                  {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(ord.total_amount)}
-                </td>
-                <td className="py-4 px-6">
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider border ${getStatusColor(ord.status)}`}>
-                    {ord.status}
-                  </span>
+                  {method.created_at ? format(new Date(method.created_at), "MMM dd, yyyy") : "-"}
                 </td>
                 <td className="py-4 px-6 text-right space-x-2">
                   <button 
-                    onClick={() => actions.edit(ord)}
+                    onClick={() => actions.edit(method)}
                     className="text-gray-400 hover:text-primary-blue transition-colors p-2 rounded-lg hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-primary-blue/30 inline-flex"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button 
-                    onClick={() => actions.delete(ord)}
-                    disabled={deleteMutation.isPending && deleteMutation.variables === ord.id}
+                    onClick={() => actions.delete(method)}
+                    disabled={deleteMutation.isPending && deleteMutation.variables === method.id}
                     className="text-gray-400 hover:text-rose-500 transition-colors p-2 rounded-lg hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-500/30 inline-flex disabled:opacity-50"
                   >
-                    {deleteMutation.isPending && deleteMutation.variables === ord.id ? (
+                    {deleteMutation.isPending && deleteMutation.variables === method.id ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <Trash2 className="w-4 h-4" />
@@ -183,10 +145,10 @@ export function Orders() {
         </CommonTable>
       </div>
 
-      <OrderFormModal 
+      <PaymentMethodFormModal 
         isOpen={isFormOpen} 
         onClose={() => setIsFormOpen(false)} 
-        orderToEdit={selectedOrder} 
+        methodToEdit={selectedMethod} 
       />
     </Layout>
   );
